@@ -17,7 +17,7 @@ def home(request):
         user_prompt = request.POST.get('prompt')
         sql_statement = nlq_parser.parse_to_sql(user_prompt)
         context["statement"]=sql_statement
-        context["table_name"]=extract_table_name(sql_statement)
+        
 
         print(sql_statement)
         
@@ -30,23 +30,29 @@ def home(request):
                     context["table_data"]=cursor.fetchall()
                     context["table_columns"]=[disc[0] for disc in  cursor.description]
                     context["message"]="Query executed successfully, Data retreived"
+                    context["table_name"]=extract_table_name(sql_statement)
 
                 elif sql_type in ["UPDATE","DELETE"]:
                     cursor.execute(sql_statement)
                     connection.commit()
                     affected_rows=cursor.rowcount()
                     context["message"]=f"{affected_rows} affected by the statement {sql_statement}"
-        
+                    context["table_name"]=extract_table_name(sql_statement)
+                    context["table_data"]=cursor.fetchall()
+                    context["table_columns"]=[disc[0] for disc in  cursor.description]
+               
                 elif sql_type in ["CREATE","DROP"]:
                     cursor.execute(sql_statement)
                     connection.commit()
                     context["message"]=f"Table opreation {sql_type.lower()} executed successfully"
-                
+                    context["table_name"]=extract_table_name(sql_statement)
+                    context["table_columns"]=[disc[0] for disc in  cursor.description]
                 else:
                     cursor.execute(sql_statement)
                     connection.commit()
                     context["message"]="Query executed successfully"
-                
+                    context["table_name"]=extract_table_name(sql_statement)
+                    context["table_columns"]=[disc[0] for disc in  cursor.description]
         
         except Exception as e:
             context["message"]=f"An error occurred: {e}"
